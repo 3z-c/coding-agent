@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv1/
+
+# IDE
+.idea/
+.vscode/
+
+# 密钥文件——绝不要提交到 git
+.env
+
+# Claude Code 本地设置（含本机路径，不应提交）
+.claude/
