@@ -93,12 +93,14 @@ def main() -> None:
     args = parser.parse_args()
 
     cwd = Path(args.cwd).expanduser().resolve()
+    results_dir = cwd / ".agent_cache" / "tool-results"  # 超大工具结果落盘目录
     registry = build_registry(cwd)
     agent = Agent(
         client=LLMClient(Config.from_env()),
         registry=registry,
         system_prompt=SYSTEM_PROMPT,
         max_steps=args.steps,
+        results_dir=results_dir,
     )
 
     # 不带任务 -> 进入交互模式
