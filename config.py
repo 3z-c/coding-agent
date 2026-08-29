@@ -16,14 +16,17 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 
 @dataclass(frozen=True)
-class Config:
+class Config:       #调用 LLM API
     api_key: str
     base_url: str
     model: str
 
+    # 从环境变量构建 Config
     @classmethod
     def from_env(cls) -> "Config":
+        # 取 API Key
         api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        # 校验
         if not api_key or api_key.startswith("sk-xxx"):
             raise ValueError("未配置 DEEPSEEK_API_KEY，请在项目根目录 .env 中填入真实密钥")
         return cls(
