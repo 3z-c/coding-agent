@@ -38,10 +38,12 @@ SYSTEM_PROMPT = """你是一个运行在本地计算机上的编码助手（codi
 - 任务结束后用 delete_file 清理你创建的临时验证文件（如 _test.py），不要在工作目录留下垃圾
 - 完成任务后，用中文简洁总结你做了什么、结果如何"""
 
+# 交互模式的退出词
 EXIT_WORDS = {"exit", "quit", "q", "退出"}
 
-
+# 组装所有工具
 def build_registry(workspace_root: Path) -> ToolRegistry:
+    """把六个工具全部创建实例、注册到 ToolRegistry 里"""
     registry = ToolRegistry()
     registry.add(ReadFileTool(workspace_root=workspace_root))
     registry.add(WriteFileTool(workspace_root=workspace_root))
