@@ -86,6 +86,7 @@ class LLMClient:
                 )
             )
 
+        #组装并返回 ChatResult
         usage = resp.usage
         return ChatResult(
             content=msg.content,
