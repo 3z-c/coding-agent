@@ -34,6 +34,7 @@ class ToolResult:
 class Tool(ABC):
     """工具抽象基类。子类需实现 name / description / parameters / execute。"""
 
+    #类属性
     name: str = ""
     description: str = ""
     parameters: dict = {}  # JSON Schema，用于发给模型 + 本地校验
@@ -58,7 +59,7 @@ class Tool(ABC):
 class BaseTool(Tool):
     """带参数构建/取值辅助方法的工具基类。"""
 
-    # ---- 参数 schema 构建 ----
+    # 参数 schema 构建
     @staticmethod
     def string_param(description: str, **extra: Any) -> dict:
         p: dict[str, Any] = {"type": "string", "description": description}
@@ -88,7 +89,7 @@ class BaseTool(Tool):
             schema["required"] = required
         return schema
 
-    # ---- 参数取值（容错：类型可能是 str/int/bool 混用）----
+    # 参数取值（容错：类型可能是 str/int/bool 混用）
     def get_string(self, arguments: dict, key: str, default: Optional[str] = None) -> Optional[str]:
         value = arguments.get(key)
         if value is None:
