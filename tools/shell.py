@@ -10,10 +10,10 @@ import subprocess
 
 from tools.base import BaseTool, ToolResult
 
-_DEFAULT_TIMEOUT = 30
-_MAX_OUTPUT_CHARS = 20000  # 超长输出截断，防止塞爆上下文
+_DEFAULT_TIMEOUT = 30       # 默认超时 30 秒。
+_MAX_OUTPUT_CHARS = 20000   # 超长输出截断，防止塞爆上下文
 
-
+# 输出截断函数
 def _truncate(text: str, limit: int = _MAX_OUTPUT_CHARS) -> str:
     if len(text) <= limit:
         return text
@@ -51,19 +51,21 @@ class RunCommandTool(BaseTool):
                 errors="replace",
                 timeout=timeout,
             )
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired as e:      # 处理超时
             partial = (e.stdout or "") + (e.stderr or "")
             return ToolResult.error(f"命令超时（>{timeout} 秒）: {command}\n{_truncate(str(partial))}")
-        except OSError as e:
+        except OSError as e:        # 处理其他执行错误
             return ToolResult.error(f"无法执行命令: {e}")
 
+        # 合并输出
         output = ""
-        if proc.stdout:
+        if proc.stdout:     # 标准输出
             output += proc.stdout
-        if proc.stderr:
+        if proc.stderr:     # 标准错误输出
             output += f"\n[stderr]\n{proc.stderr}"
         output = _truncate(output)
 
+        # 判断退出码
         if proc.returncode != 0:
             # 非零退出码：不抛异常，反馈给模型修正
             return ToolResult.error(f"[exit code {proc.returncode}]\n{output}")
