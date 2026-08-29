@@ -5,12 +5,13 @@
 2. 工具执行失败以 ToolResult.error 回填给模型，让模型自我修正而不是被吞掉
 3. 工具参数解析失败记录 parse_error 并回填错误，不静默丢弃
 4. LLM 调用失败做指数退避重试，不直接崩溃
-5. 上下文由 Memory 管理：工具结果截断 + 历史超长裁剪
+5. 上下文由 Memory 管理：工具结果分级（截断 / 落盘）+ token 预算裁剪
 """
 from __future__ import annotations
 
 import sys
 import time
+from pathlib import Path
 from typing import Optional
 
 from agent.memory import Memory
@@ -32,8 +33,9 @@ class Agent:
         max_steps: int = 20,
         max_retries: int = 3,
         verbose: bool = True,
-        max_messages: int = 40,
+        max_tokens: int = 20000,
         max_tool_result_chars: int = 8000,
+        results_dir: Optional[Path] = None,
     ) -> None:
         self.client = client
         self.registry = registry
@@ -41,8 +43,9 @@ class Agent:
         self.max_steps = max_steps
         self.max_retries = max_retries
         self.verbose = verbose
-        self.max_messages = max_messages
+        self.max_tokens = max_tokens
         self.max_tool_result_chars = max_tool_result_chars
+        self.results_dir = results_dir
         self.memory: Memory | None = None
         self.total_tokens = 0
 
@@ -77,7 +80,11 @@ class Agent:
 
     def _reset_session(self) -> None:
         """清空会话：换新的 Memory 并归零 token 计数。"""
-        self.memory = Memory(max_messages=self.max_messages, max_tool_result_chars=self.max_tool_result_chars)
+        self.memory = Memory(
+            max_tokens=self.max_tokens,
+            max_tool_result_chars=self.max_tool_result_chars,
+            results_dir=self.results_dir,
+        )
         self.total_tokens = 0
 
     def _step(self, step: int) -> Optional[str]:
