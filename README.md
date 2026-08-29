@@ -14,6 +14,24 @@ https://github.com/3z-c/zc_coding-agent.git
    - 单次任务：`python main.py "你的任务"`
    - 交互模式：`python main.py`（连续对话，输入 exit 退出）
    - 可选参数：`--steps` 限制单次任务步数，`--cwd` 指定工作目录
+  
+## 项目结构
+
+- **coding-agent/**
+  - `main.py` — 程序入口，解析参数、组装 Agent 和工具
+  - `config.py` — 统一读取 .env 配置（API Key、模型名等）
+  - **agent/**
+    - `loop.py` — ReAct 主循环（思考→行动→观察）
+    - `memory.py` — 上下文管理（结果分级、超大结果落盘）
+    - `messages.py` — 消息格式定义
+  - **llm/**
+    - `client.py` — LLM 客户端（唯一依赖 openai SDK 的模块）
+  - **tools/**
+    - `base.py` — 工具抽象基类、ToolResult 结果模型
+    - `registry.py` — 工具注册表，统一管理所有工具
+    - `filesystem.py` — 文件操作（读、写、列目录，路径越界拦截）
+    - `edit.py` — 精确替换/删除文件
+    - `shell.py` — 执行命令（带超时控制、输出截断）
 
 ## 特色功能
 
