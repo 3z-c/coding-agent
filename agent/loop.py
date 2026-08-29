@@ -54,10 +54,10 @@ class Agent:
         """当前对话历史（由 Memory 管理）。"""
         return self.memory.messages if self.memory else []
 
-    # ---- 终止条件：模型不再请求工具，或达到最大步数 ----
+    #  终止条件：模型不再请求工具，或达到最大步数
     def run(self, task: str) -> str:
         """开启一个新会话并执行任务。返回最终回答文本。"""
-        self._reset_session()
+        self._reset_session()   # 清空历史，新建 Memory
         self.memory.add_system(self.system_prompt)
         return self.continue_run(task)
 
@@ -99,7 +99,7 @@ class Agent:
         if not resp.has_tool_calls:
             return resp.content if resp.content else "(模型没有返回任何内容)"
 
-        # 终止条件 2：执行所有工具调用并回填结果（作业"工具的定义与本地执行"）
+        # 终止条件 2：执行所有工具调用并回填结果
         for tc in resp.tool_calls:
             self._log(f">>> step {step} | 调用工具 {tc.name}({tc.arguments})")
 
@@ -114,14 +114,14 @@ class Agent:
             self._log(f"    [{'ERR' if result.is_error else 'OK'}] {first_line[:120]}")
             self.memory.add_tool(result.output, tool_call_id=tc.id, name=tc.name)
 
-        # 上下文管理：每轮结束尝试裁剪（工具结果截断已在 Memory.add_tool 内处理）
+        # 上下文管理：每轮结束尝试裁剪
         removed = self.memory.trim()
         if removed:
             self._log(f"[上下文] 已裁剪 {removed} 条旧消息，避免超出上下文窗口")
 
         return None  # 继续循环
 
-    # ---- 错误处理：带指数退避重试的 LLM 调用 ----
+    # 错误处理：带指数退避重试的 LLM 调用
     def _call_llm(self) -> ChatResult:
         for attempt in range(self.max_retries):
             try:
