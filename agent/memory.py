@@ -45,7 +45,7 @@ class Memory:
     def __len__(self) -> int:
         return len(self._messages)
 
-    # ---- 追加各种消息 ----
+    # 追加各种消息
     def add_system(self, content: str) -> None:
         self._messages.append(Message.system(content))
 
@@ -71,15 +71,13 @@ class Memory:
         )
         self._messages.append(Message.tool(content, tool_call.id, tool_call.name))
 
-    # ---- 工具结果分级：截断 / 落盘 ----
+    # 工具结果分级：截断 / 落盘
     def _bound_tool_result(self, content: str, tool_call_id: str) -> str:
-        """工具结果分级处理：
-        - 不超过 max_tool_result_chars：原样保留
-        - 超过且未到落盘阈值：截断加标记
-        - 超过落盘阈值且有 results_dir：全文落盘，消息里留预览 + 路径指针
-        """
+
+        #不超过 max_tool_result_chars：原样保留
         if len(content) <= self.max_tool_result_chars:
             return content
+        #超过落盘阈值且有 results_dir：写文件到硬盘中，消息里留路径+预览
         if self.results_dir is not None and len(content) > self.disk_threshold:
             try:
                 self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -93,26 +91,24 @@ class Memory:
                 )
             except OSError:
                 pass  # 落盘失败：降级为截断
+        #未到落盘阈值，或者没配落盘目录，或者落盘失败：截断加标记
         return (
             content[: self.max_tool_result_chars]
             + f"\n...[结果已截断，共 {len(content)} 字符，仅保留前 {self.max_tool_result_chars} 字符]"
         )
 
-    # ---- token 估算 ----
+    # token 估算
     @staticmethod
     def _estimate(msg: Message) -> int:
-        """按字符数估算一条消息的 token 数（chars/4 兜底，至少 1）。"""
+        """按字符数估算一条消息的 token 数（chars/4 ，至少占1个token）。"""
         return max(1, len(msg.content or "") // CHARS_PER_TOKEN)
 
-    # ---- 上下文管理：token 预算裁剪 ----
+    # 上下文管理：token 预算裁剪
     def trim(self) -> int:
         """裁剪历史，返回被删除的消息数。
 
         估算总 token 超出 max_tokens 时：保留 system + 用户任务（前 2 条）+
-        最近对话，丢弃最旧的中间轮次。裁剪点向后对齐到"轮次起点"——即以
-        assistant(tool_calls) 开头的消息，保证不拆散 tool 结果与其所属调用；
-        末尾若残留未回填的 tool_calls 一并丢弃（API 要求 assistant 的 tool_calls
-        必须紧跟对应 tool 消息）。
+        最近对话，丢弃最旧的中间轮次。裁剪点向后对齐到"轮次起点"
         """
         if len(self._messages) <= 4:
             return 0
@@ -122,7 +118,7 @@ class Memory:
         # 从末尾往回累积最近对话的估算 token，超过预算的位置作为保留起点
         acc = 0
         cut = len(self._messages)
-        for i in range(len(self._messages) - 1, 1, -1):  # 跳过 system + user 头
+        for i in range(len(self._messages) - 1, 1, -1):  # 跳过前两条（system + 第一条user）
             acc += self._estimate(self._messages[i])
             if acc >= self.max_tokens:
                 cut = i
@@ -130,12 +126,13 @@ class Memory:
         if cut >= len(self._messages):
             return 0  # 尾部累积未达预算，溢出来自头两条本身，无可裁
 
-        # 向后对齐到轮次起点（不拆 assistant(tool_calls) 与其后续 tool 消息）
+        # 向后对齐到轮次起点（不拆 assistant(tool_calls) 与其后续 tool 消息），移到这个 assistant 消息的开头
         while cut > 2 and self._messages[cut].role == Role.TOOL:
             cut -= 1
         if cut <= 2:
             return 0  # 预算边界落在第一轮内部，无法安全裁剪
 
+        #执行裁剪
         kept = self._messages[:2] + self._messages[cut:]
         removed = len(self._messages) - len(kept)
         self._messages = kept
@@ -144,4 +141,4 @@ class Memory:
         while self._messages and self._messages[-1].role == Role.ASSISTANT and self._messages[-1].tool_calls:
             self._messages.pop()
             removed += 1
-        return removed
+        return removed  # 返回删了多少条
