@@ -11,7 +11,7 @@ from typing import Optional
 from tools.base import BaseTool, ToolResult
 from tools.filesystem import _resolve_path
 
-
+#精确替换工具
 class EditFileTool(BaseTool):
     name = "edit_file"
     description = (
@@ -33,9 +33,11 @@ class EditFileTool(BaseTool):
         self.workspace_root = workspace_root
 
     def execute(self, arguments: dict) -> ToolResult:
+        #第一步：取参数
         file_path = self.get_string(arguments, "file_path")
         old = self.get_string(arguments, "old_string")
         new = self.get_string(arguments, "new_string")
+        #第二步：参数校验
         if not file_path:
             return ToolResult.error("缺少 file_path 参数")
         if old is None:
@@ -43,10 +45,12 @@ class EditFileTool(BaseTool):
         if new is None:
             return ToolResult.error("缺少 new_string 参数")
 
+        #第三步：路径安全解析
         path = _resolve_path(file_path, self.workspace_root)
         if path is None:
             return ToolResult.error(f"路径越界: {file_path}")
 
+        #第四步：读取文件
         try:
             content = path.read_text(encoding="utf-8")
         except FileNotFoundError:
@@ -54,25 +58,28 @@ class EditFileTool(BaseTool):
         except OSError as e:
             return ToolResult.error(f"读取失败: {e}")
 
+        #第五步：歧义校验
         count = content.count(old)
-        if count == 0:
+        if count == 0:      #找不到
             return ToolResult.error(
                 "未找到要替换的原文 old_string，请检查是否与文件内容逐字符一致（尤其缩进/空白）。"
                 f"可先用 read_file 查看当前内容。"
             )
-        if count > 1:
+        if count > 1:      #找到多处
             return ToolResult.error(
                 f"old_string 在文件中出现 {count} 次，替换有歧义，请提供更多上下文使其唯一"
             )
 
+        #第六步：执行替换并写回
         new_content = content.replace(old, new, 1)
         try:
             path.write_text(new_content, encoding="utf-8")
         except OSError as e:
             return ToolResult.error(f"写入失败: {e}")
+        #第七步：返回成功
         return ToolResult.success(f"已把 {path.name} 中的一处原文替换为新文本（文件共 {len(new_content)} 字符）")
 
-
+# 删除文件工具
 class DeleteFileTool(BaseTool):
     name = "delete_file"
     description = "删除一个文件。用于清理临时验证文件、多余文件等。只删除文件，不删除目录。"
@@ -96,6 +103,7 @@ class DeleteFileTool(BaseTool):
         if path is None:
             return ToolResult.error(f"路径越界: {file_path}")
 
+        #目录检查
         if path.is_dir():
             return ToolResult.error(f"{path} 是目录，delete_file 只删除文件；目录请用 run_command 处理")
 
