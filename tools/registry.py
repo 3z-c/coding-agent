@@ -16,20 +16,25 @@ class ToolRegistry:
     def __init__(self) -> None:
         self._tools: dict[str, Tool] = {}
 
+    # 登记工具
     def add(self, tool: Tool) -> None:
         self._tools[tool.name] = tool
 
+    # 按名字找工具
     def get(self, name: str) -> Optional[Tool]:
         return self._tools.get(name)
 
+    # 输出给模型的工具列表
     def get_schemas(self) -> list[dict]:
         """OpenAI 格式的工具 schema 列表，发给模型用。"""
         return [tool.to_openai_schema() for tool in self._tools.values()]
 
     def execute(self, name: str, arguments: dict) -> ToolResult:
+        # 1. 查找工具
         tool = self._tools.get(name)
         if tool is None:
             return ToolResult.error(f"未找到工具: {name}")
+        # 2. 调用工具的 execute
         try:
             return tool.execute(arguments)
         except Exception as e:  # 工具内部崩溃也不打断循环
