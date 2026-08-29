@@ -13,3 +13,6 @@ __pycache__/
 
 # Claude Code 本地设置（含本机路径，不应提交）
 .claude/
+
+# agent 运行时产物（超大工具结果落盘目录）
+.agent_cache/
