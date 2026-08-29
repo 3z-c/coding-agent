@@ -2,6 +2,7 @@
 
 - Role：system / user / assistant / tool 四角色
 - Message：一条消息，按角色携带不同字段
+- ToolCall：模型发起的一次工具调用（含原始参数、解析结果、解析错误）
 - to_api_dict()：转成 OpenAI 兼容的 API 请求格式
 
 字段约定：
@@ -16,6 +17,7 @@ from enum import Enum
 from typing import Any, Optional
 
 
+#定义四种消息角色
 class Role(str, Enum):
     SYSTEM = "system"
     USER = "user"
@@ -29,7 +31,7 @@ class ToolCall:
 
     id: str
     name: str
-    arguments_raw: str = ""  # 模型返回的原始 arguments 字符串（回填给 API 时必须用它）
+    arguments_raw: str = ""  # 模型返回的原始 arguments 字符串
     arguments: dict[str, Any] = field(default_factory=dict)  # 解析后的参数
     parse_error: Optional[str] = None  # arguments 解析失败时的错误信息（None 表示解析成功）
 
