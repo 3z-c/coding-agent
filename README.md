@@ -2,7 +2,7 @@
 
 一个用 Python 从零实现的本地编码 Agent，不依赖任何 Agent 框架。采用 ReAct（思考→行动→观察）循环，接入 DeepSeek 大模型（OpenAI 兼容协议），可自主完成编程任务。
 
-## Git 仓库地址[
+## Git 仓库地址
 https://github.com/3z-c/coding-agent.git
 
 ## 如何运行
