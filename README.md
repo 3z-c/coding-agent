@@ -1,4 +1,4 @@
-# Coding Agent —— 从零手写的编码 Agent
+# Coding Agent —— 从零开始的编码 Agent
 
 一个用 Python 从零实现的本地编码 Agent，不依赖任何 Agent 框架。采用 ReAct（思考→行动→观察）循环，接入 DeepSeek 大模型（OpenAI 兼容协议），可自主完成编程任务。
 
