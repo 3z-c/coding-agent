@@ -1,10 +1,10 @@
 """编码 agent 命令行入口。
 
-用法（项目根目录 coding-agent 下执行）:
-    python main.py "你的任务"             # 单次任务，跑完即退
-    python main.py                        # 交互模式：连续对话，Ctrl+C 或输入 exit 退出
-    python main.py --steps 50             # 提高单次任务的步数上限
-    python main.py --cwd ./my_project     # 指定 agent 的工作目录
+用法:
+    python main.py "写一个hello, world"    # 单次任务，跑完即退
+    python main.py                        # 交互模式：连续对话，输入 exit 或 Ctrl+D 退出
+    python main.py --steps 50             # 提高步数上限，默认交互模式
+    python main.py --cwd ./my_project     # 指定 agent 的工作目录 my_project，默认交互模式
 """
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ def run_interactive(agent: Agent) -> int:
 
     同一会话上下文会被保留——agent 记得本轮之前说过、做过什么，像聊天一样连续演进。
     """
-    print("=== 交互模式（Ctrl+C / Ctrl+D / 输入 exit 退出）===")
+    print("=== 交互模式（输入 exit 退出，或按 Ctrl+D）===")
     print("agent 会记住本次会话的上下文，可直接接着上一轮继续说。\n")
     while True:
         try:
