@@ -3,11 +3,11 @@
 一个用 Python 从零实现的本地编码 Agent，不依赖任何 Agent 框架。采用 ReAct（思考→行动→观察）循环，接入 DeepSeek 大模型（OpenAI 兼容协议），可自主完成编程任务。
 
 ## Git 仓库地址
-https://github.com/3z-c/coding-agent.git
+https://github.com/zzz-3bit/coding-agent.git
 
 ## 如何运行
 
-1. 克隆仓库：`git clone https://github.com/3z-c/zc_coding-agent.git`
+1. 克隆仓库：`git clone https://github.com/zzz-3bit/coding-agent.git`
 2. 安装依赖：`pip install -r requirements.txt`
 3. 配置密钥：复制 `.env.example` 为 `.env`，填入 `DEEPSEEK_API_KEY`
 4. 运行：
@@ -29,7 +29,7 @@ https://github.com/3z-c/coding-agent.git
   - **tools/**
     - `base.py` — 工具抽象基类、ToolResult 结果模型
     - `registry.py` — 工具注册表，统一管理所有工具
-    - `filesystem.py` — 文件操作（读、写、列目录，路径越界拦截）
+    - `filesystem.py` — 文件操作（读、写、列目录）
     - `edit.py` — 精确替换/删除文件
     - `shell.py` — 执行命令（带超时控制、输出截断）
 
